@@ -5,16 +5,24 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { ErrorMessage } from '@/components/ErrorMessage';
 import { useETLExecutions } from '@/hooks/useETLExecutions';
-import type { ETLExecution } from '@/types';
+
 
 /**
  * Vista de estado de ejecuciones ETL
- * Muestra tabla detallada con historial de ejecuciones
+ * Muestra tabla detallada con historial de ejecuciones 
  */
 export const ETLStatus: React.FC = () => {
   const { executions, isLoading, error, refetch } = useETLExecutions(true);
 
-  // Estado de carga
+ const stats = React.useMemo(() => {
+    const total = executions.length;
+    const successful = executions.filter((e) => e.status === 'success').length;
+    const withErrors = executions.filter((e) => e.status === 'error' || e.status === 'warning').length;
+    const totalRecords = executions.reduce((sum, e) => sum + e.recordsProcessed, 0);
+
+     return { total, successful, withErrors, totalRecords };
+  }, [executions]);
+  // Estado de carga 
   if (isLoading) {
     return <LoadingSpinner message="Cargando historial de ejecuciones..." />;
   }
@@ -50,14 +58,8 @@ export const ETLStatus: React.FC = () => {
   /**
    * Calcula estadísticas del período
    */
-  const stats = React.useMemo(() => {
-    const total = executions.length;
-    const successful = executions.filter((e) => e.status === 'success').length;
-    const withErrors = executions.filter((e) => e.status === 'error' || e.status === 'warning').length;
-    const totalRecords = executions.reduce((sum, e) => sum + e.recordsProcessed, 0);
 
-    return { total, successful, withErrors, totalRecords };
-  }, [executions]);
+   
 
   return (
     <div className="space-y-6">
